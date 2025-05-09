@@ -1,0 +1,175 @@
+---
+title: "pre_analysis"
+author: "Soichiro Sugita"
+format: html
+editor: visual
+---
+
+## Introduction
+
+## Packages
+```{r}
+library(here)
+library(skimr)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+```
+
+
+## Import Data
+```{r}
+# main data
+df_elementary <- readr::read_csv(here::here("./data/processed/TALIS2018_Japan_cleaned_elementary.csv"))
+df_middle <- readr::read_csv(here::here("./data/processed/TALIS2018_Japan_cleaned_middle.csv"))
+
+# principal data
+df_principal_elementary <- readr::read_csv(here::here("./data/processed/TALIS2018_Japan_principal_elementary.csv"))
+df_principal_middle <- readr::read_csv(here::here("./data/processed/TALIS2018_Japan_principal_middle.csv"))
+```
+
+
+## Summary Stat
+
+### Principal
+```{r}
+# skimの結果をデータフレームとして取得
+skim_df <- skimr::skim(df_principal_elementary)
+
+# 表の形式に整形して表示（kable + kableExtra）
+skim_df %>%
+  mutate(across(where(is.numeric), ~ round(.x, 3)))
+  kable("html") %>%
+  kable_styling(full_width = FALSE, 
+                bootstrap_options = c("striped",
+                                      "hover")
+                )
+```
+
+
+### elementary
+
+```{r}
+# skimの結果をデータフレームとして取得
+skim_df <- skimr::skim(df_elementary)
+
+# 表の形式に整形して表示（kable + kableExtra）
+skim_df %>%
+  mutate(across(where(is.numeric), ~ round(.x, 3)))
+  kable("html") %>%
+  kable_styling(full_width = FALSE, 
+                bootstrap_options = c("striped", "hover"))
+  
+
+
+```
+
+### middle
+```{r}
+# skimの結果をデータフレームとして取得
+skim_df <- skimr::skim(df_middle)
+
+# 表の形式に整形して表示（kable + kableExtra）
+skim_df %>%
+  mutate(across(where(is.numeric), ~ round(.x, 3)))
+  kable("html") %>%
+  kable_styling(full_width = FALSE, 
+                bootstrap_options = c("striped", "hover"))
+```
+
+## Data
+
+### Variables
+
+Technical Reportを見ると、変数はp.36から書いてある。
+
+| 種類           | 変数名                 | 内容                                          | 形式                       |
+|:---------------|:---------------|:----------------------|:---------------|
+| 識別変数       | `CNTRY`                | 3桁アルファベット国コード (ISOベース)         | 文字列                     |
+| 識別変数       | `IDCNTRY`              | 国コード（2-6桁の数字）                       | 数値                       |
+| 識別変数       | `IDCNTRYR`             | 国別順序用の2桁コード                         | 数値                       |
+| 識別変数       | `IDPOP`                | ターゲット母集団を示すコード (例: 2=ISCED2)   | 数値                       |
+| 識別変数       | `IDCNTPOP`             | 国コード＋ISCEDレベル（例：JPN2）             | 文字列                     |
+| 管理変数       | `CPART`                | 校長の回答状況 (例: 回答した/しなかった)      | 数値コード                 |
+| 管理変数       | `MODEA_PrQ`            | 校長アンケートの実施方法 (1=オンライン, 2=紙) | 数値コード                 |
+| 管理変数       | `IDLANG`               | アンケート回答言語（例: French (Belgium)）    | 文字列                     |
+| 管理変数       | `INTAL18`              | 標本代表性（1=有効, 0=無効）                  | 数値コード                 |
+| 管理変数       | `TALIS13POP`           | TALIS2013との比較可否 (1=比較可能)            | 数値コード                 |
+| アンケート回答 | 校長質問票変数群       | 学校に関する校長の回答項目                    | 各種（数値、カテゴリなど） |
+| 指標           | 学校インデックス群     | 校長質問票から作成した指標スコア              | 連続変数（スケール化）     |
+| 重み           | 重み変数・複製重み変数 | サンプリング重み、推定のための重み            | 数値                       |
+| バージョン情報 | `VERSION`              | データベースのリリースバージョン番号          | 数値                       |
+| バージョン情報 | `IEADATE`              | データ作成日 (YYYYMMDD形式)                   | 数値                       |
+
+## 
+
+| 種類           | 変数名                                     | 内容                                                                 | 形式                       |
+|:---------------|:---------------|:-----------------------|:---------------|
+| 識別変数       | `CNTRY`                                    | 国コード                                                             | 文字列                     |
+| 識別変数       | `IDCNTRY`, `IDCNTRYR`, `IDPOP`, `IDCNTPOP` | （上記と同様）                                                       | 文字列/数値                |
+| 管理変数       | `TPART`                                    | 教員の回答状況                                                       | 数値コード                 |
+| 管理変数       | `MODEA_TcQ`                                | 教員アンケートの実施方法                                             | 数値コード                 |
+| 管理変数       | `IDLANG`                                   | 回答言語                                                             | 文字列                     |
+| 管理変数       | `INTAL18`                                  | 標本代表性                                                           | 数値コード                 |
+| 管理変数       | `TALIS13POP`, `TALIS08POP`                 | TALIS2013・2008との比較可否                                          | 数値コード                 |
+| アンケート回答 | 教員質問票変数群                           | 教員に関する回答項目（例：勤務経験、授業管理など）                   | 各種（数値、カテゴリなど） |
+| 指標           | 教員インデックス群                         | 教員質問票から作成されたスケールスコア（自己効力感、職業満足度など） | 連続変数（スケール化）     |
+| 重み           | 重み変数・複製重み変数                     | サンプリング重み、推定のための重み                                   | 数値                       |
+| バージョン情報 | `VERSION`, `IEADATE`                       | （上記と同様）                                                       | 数値                       |
+
+| 変数名    | 内容                                                                              | 形式                             |
+|:----------------|:--------------------------------------|:----------------|
+| `T3SECLS` | Self-efficacy in classroom management（授業管理に関する自己効力感）               | スケール化 (10点平均、標準偏差2) |
+| `T3SEINS` | Self-efficacy in instruction（授業指導に関する自己効力感）                        | スケール化 (同上)                |
+| `T3SEENG` | Self-efficacy in student engagement（生徒の意欲向上に関する自己効力感）           | スケール化 (同上)                |
+| `T3SEFE`  | Self-related efficacy in multicultural classrooms（多文化教室における自己効力感） | スケール化 (同上)                |
+
+| 変数名    | 内容                                                             | 形式                |
+|:---------------|:--------------------------------------|:---------------|
+| `T3JOBSA` | Job satisfaction, overall（職業全体に対する満足度）              | スケール化 (Metric) |
+| `T3JSENV` | Job satisfaction with work environment（職場環境に対する満足度） | スケール化 (Metric) |
+| `T3JSPRO` | Job satisfaction with profession（教職自体に対する満足度）       | スケール化 (Metric) |
+
+## Autonomy
+
+| 変数名    | 内容                                                                           | 形式             | 備考                             |
+|:--------------|:----------------------------|:--------------|:--------------|
+| `T3PAUTS` | **School autonomy for staffing**（人員配置に関する学校の自律性）               | 名義尺度（1〜3） | 1=自律なし, 2=部分的, 3=自律あり​ |
+| `T3PAUTB` | **School autonomy for budgeting**（予算編成に関する学校の自律性）              | 名義尺度（1〜3） | 1=自律なし, 2=部分的, 3=自律あり​ |
+| `T3PAUTP` | **School autonomy for educational policies**（教育方針に関する学校の自律性）   | 名義尺度（1〜3） | 1=自律なし, 2=部分的, 3=自律あり​ |
+| `T3PAUTI` | **School autonomy for instructional policies**（授業方針に関する学校の自律性） | 名義尺度（1〜3） | 1=自律なし, 2=部分的, 3=自律あり​ |
+| `T3PAUTC` | **School autonomy for curriculum**（カリキュラム編成に関する学校の自律性）     | 名義尺度（1〜3） | 1=自律なし, 2=部分的, 3=自律あり​ |
+
+| 変数名    | 内容                                       | 形式             | 備考                     |
+|:---------------|:------------------------|:---------------|:---------------|
+| `TT3G40A` | コース内容（教える内容）を決める裁量       | 順序尺度（1〜4） | 1=強く不同意〜4=強く同意​ |
+| `TT3G40B` | 指導方法（ティーチングメソッド）を選ぶ裁量 | 順序尺度（1〜4） | 同上                     |
+| `TT3G40C` | 学生の学習評価を決める裁量                 | 順序尺度（1〜4） | 同上                     |
+| `TT3G40D` | 生徒を懲戒する際の裁量                     | 順序尺度（1〜4） | 同上                     |
+
+| スケール変数名     | 内容                                                      | 備考                                       |
+|:-----------------|:------------------------------|:-----------------------|
+| `T3PCOM`           | **Stakeholder collaboration**（ステークホルダーとの連携） | 地域・保護者・教育行政との協働             |
+| `T3PAUTS～T3PAUTC` | **School autonomy indices**（学校自律性）                 | 校長の裁量が及ぶ領域（予算・教育方針など） |
+| `T3PDELI`          | **School safety / discipline**（秩序管理）                | 校長による秩序維持・対処能力               |
+| `T3PACAD`          | **Academic pressure management**（学業成果への配慮）      | 教員・生徒への学業圧の管理                 |
+
+## Method
+
+## Results
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
